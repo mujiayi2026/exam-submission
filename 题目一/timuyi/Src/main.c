@@ -25,7 +25,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "dht11.h"
 #include <string.h>
+#include <stdio.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,7 +48,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+DHT11_Data_TypeDef DHT11_Data;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -56,14 +59,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-    if (htim->Instance == TIM2)
-    {
-        char msg[] = "hello world";
-        HAL_UART_Transmit(&huart1, (uint8_t*)msg,strlen(msg), 100);
-    }
-}
+
 /* USER CODE END 0 */
 
 /**
@@ -94,16 +90,25 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_TIM1_Init();
+  MX_TIM2_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-HAL_TIM_Base_Start_IT(&htim1);
+	DHT11_Init(); 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+		if(DHT11_ReadData(&DHT11_Data) == 0) {
+    char msg[50];
+    sprintf(msg, "Temp: %d C, Humi: %d %%\r\n", DHT11_Data.temp_int, DHT11_Data.humi_int);
+    HAL_UART_Transmit(&huart1, (uint8_t*)msg, strlen(msg), 100);
+} else {
+    char msg[] = "DHT11 Read Error!\r\n";
+    HAL_UART_Transmit(&huart1, (uint8_t*)msg, strlen(msg), 100);
+}
+HAL_Delay(2000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
