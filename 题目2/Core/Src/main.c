@@ -121,7 +121,14 @@ HAL_UART_Init(&huart1);
   {
 	  function();
 	  
-		
+		HAL_Delay(1);
+	  DHT_R_data();
+	  if(time_OLED%1000 <100) //每隔0.9秒发送
+	  {
+		  printf("temperature%d\r\n",R_data[2]); 
+		  printf("humidity:%d\r\n",R_data[0]);
+		  printf("\r\n\n");
+	  }
 		  
 		  
 	  
