@@ -1,0 +1,8 @@
+简介
+完成题目：题目一（HC-SR04超声波测距）
+开发板：STM32F103C8T6
+串口配置：USART1（PA9-TX/PA10-RX），波特率115200
+实现功能：通过HC-SR04超声波模块测距，串口输出距离数值
+核心外设：GPIO（PA0-Trig、PA1-Echo）、USART1
+关键逻辑：触发10us脉冲 → 等待回波 → 计时高电平时间 → 换算距离
+串口输出格式：distance：X.XX cm（2cm ~ 400cm）或 beyond the distance

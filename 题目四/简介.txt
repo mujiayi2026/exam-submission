@@ -1,0 +1,8 @@
+简介
+完成题目：题目四（ADC 光照采集）
+开发板：STM32F103C8T6
+串口配置：USART1（PA9-TX/PA10-RX），波特率115200
+实现功能：通过光敏传感器采集光照强度，串口输出当前光线等级
+核心外设：光敏传感器、USART1
+关键逻辑：启动ADC转换 → 读取原始值 → 换算电压 → 判断光线等级 → 串口输出
+串口输出格式：Bright light / Normal light / Dim light / Darkness
