@@ -1,0 +1,72 @@
+一、HC-SR04工作原理
+1）采用IO触发测距，给至少10us的高电平信号。
+2）模块自动发送8个40KHz的方波，自动检测是否有信号返回。
+3）有信号返回，通过IO输出一高电平，高电平持续时间就是超声波从发射到返回的时间声波从发射到返回的时间。
+4）HC-SR04超声波测距模块提供2cm~400cm的测距功能，精度达3mm。
+二、介绍
+VCC         3.3-5V供电（推荐5V供电）
+GND        接地
+Trig          外部触发信号输入，输入一个高于10μs的高电平即可触发模块测距
+Echo        回响信号输出，测距结束时此管脚输出一个低电平，电平宽度反映超声波往返时间之和
+三、工作说明
+1、触发信号Trig直接通过IO输出和延时给一个大于10us的高电平即可触发。
+2、Echo引脚需要接收并记录高电平的持续时间。
+3、在发送触发信号后，Echo响应后（上升沿）触发外部中断，开启定时器计时直到Echo变为低电平，关闭定时器记录下计时时间。
+配置：
+使用tim6;
+Trig 输出— PA0，Echo输入 — PA1
+串口：USART1  
+代码：
+#include<stdio.h>  //后续用到所以先加头文件
+#include<string.h>
+#include "stm32f1xx_hal.h"
+
+uint32_t echo_time=0;  //储存高电平的时间
+uint16_t distance=0;    //储存距离
+
+
+#define TRIG_PIN GPIO_PIN_0   //定义Trig引脚PA0
+#define TRIG_PORT GPIOA
+#define ECHO_PIN GPIO_PIN_1   //定义Echo引脚
+#define ECHO_PORT GPIOA
+
+extern TIM_HandleTypeDef htim6;
+extern UART_HandleTypeDef huart1;
+
+void HAL_Delay_us(uint32_t us ）//控制延迟的时间
+ {
+	 uint32_t i;
+	 for(;us>0;us++)
+	     for(i=0;i<9;i++);
+ }
+
+uint32_t HC_SR04_GetEchoTime(void)
+		{
+			while(HAL_GPIO_ReadPin(ECHO_PORT,ECHO_PIN)==GPIO_PIN_RESET);  //Echo变高电平，超声波发射并接受反射回来的波
+			__HAL_TIM_SET_COUNTER(&htim6,0);  //重置定时器
+			
+			while(HAL_GPIO_ReadPin(ECHO_PORT,ECHO_PIN)==GPIO_PIN_SET);  //定时器计数
+			return __HAL_TIM_GET_COUNTER(&htim6);
+		}
+		
+uint16_t HC_SR04_GetDistance(void)
+		{
+			HAL_GPIO_WritePin(TRIG_PORT,TRIG_PIN,GPIO_PIN_SET);  //给Trig发送高电平
+			HAL_Delay_us(10);    //延时高电平持续时间
+			
+			HAL_GPIO_WritePin(TRIG_PORT,TRIG_PIN,GPIO_PIN_RESET);
+			echo_time=HC_SR04_GetEchoTime();
+			return echo_time/58;  //计算距离
+		}
+int main(void)
+{
+HAL_TIM_Base_Start(&htim6);
+while (1)
+  {
+		distance=HC_SR04_GetDistance();
+		char buf[32];
+		sprintf(buf,"Distance:%d cm\r\n",distance);  //将距离化为字符串
+		HAL_UART_Transmit(&huart1,(uint8_t*)buf,strlen(buf),100);
+		HAL_Delay(500);
+  }
+}
