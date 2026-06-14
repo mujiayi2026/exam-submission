@@ -32,3 +32,4 @@ Desktop.ini
 
 # 用户个人配置（保留工程文件，忽略个人布局）
 *.uvgui.*
+Drivers/
